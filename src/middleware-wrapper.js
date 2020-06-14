@@ -22,7 +22,7 @@ const middlewareWrapper = (config) => {
     title: validatedConfig.title,
     port: validatedConfig.port,
     socketPath: validatedConfig.socketPath,
-    external: config.external
+    external: config.external,
     bodyClasses,
     script: fs.readFileSync(path.join(__dirname, '/public/javascripts/app.js')),
     style: fs.readFileSync(

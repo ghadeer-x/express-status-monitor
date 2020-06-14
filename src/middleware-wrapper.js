@@ -7,7 +7,7 @@ const onHeadersListener = require('./helpers/on-headers-listener');
 const socketIoInit = require('./helpers/socket-io-init');
 const healthChecker = require('./helpers/health-checker');
 
-const middlewareWrapper = config => {
+const middlewareWrapper = (config) => {
   const validatedConfig = validate(config);
   const bodyClasses = Object.keys(validatedConfig.chartVisibility)
     .reduce((accumulator, key) => {
@@ -22,16 +22,21 @@ const middlewareWrapper = config => {
     title: validatedConfig.title,
     port: validatedConfig.port,
     socketPath: validatedConfig.socketPath,
+    external: config.external
     bodyClasses,
     script: fs.readFileSync(path.join(__dirname, '/public/javascripts/app.js')),
-    style: fs.readFileSync(path.join(__dirname, '/public/stylesheets/', validatedConfig.theme))
+    style: fs.readFileSync(
+      path.join(__dirname, '/public/stylesheets/', validatedConfig.theme)
+    ),
   };
 
   const htmlTmpl = fs
     .readFileSync(path.join(__dirname, '/public/index.html'))
     .toString();
 
-  const render = Handlebars.compile(htmlTmpl);
+  const render = Handlebars.compile(
+    config.htmlTmpl ? config.htmlTmpl : htmlTmpl
+  );
 
   const middleware = (req, res, next) => {
     socketIoInit(req.socket.server, validatedConfig);
@@ -39,7 +44,7 @@ const middlewareWrapper = config => {
     const startTime = process.hrtime();
 
     if (req.path === validatedConfig.path) {
-      healthChecker(validatedConfig.healthChecks).then(results => {
+      healthChecker(validatedConfig.healthChecks).then((results) => {
         data.healthCheckResults = results;
         if (validatedConfig.iframe) {
           if (res.removeHeader) {
@@ -76,7 +81,7 @@ const middlewareWrapper = config => {
    */
   middleware.middleware = middleware;
   middleware.pageRoute = (req, res) => {
-    healthChecker(validatedConfig.healthChecks).then(results => {
+    healthChecker(validatedConfig.healthChecks).then((results) => {
       data.healthCheckResults = results;
       res.send(render(data));
     });
